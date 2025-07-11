@@ -18,7 +18,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN python retrieval/sqlite_db.py
+RUN python retrieval/sqlite.py
 
 # Copy the rest of your code
 COPY . .

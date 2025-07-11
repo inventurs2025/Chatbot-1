@@ -1,0 +1,6 @@
+ssh/
+venv/
+
+__pychache_/
+fainseDB/
+
