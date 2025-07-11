@@ -35,7 +35,7 @@ class LangChainSQLManager:
         Returns a LangChain SQLDatabase object for the selected database.
         """
         if self.db_type == LOCALDB:
-            dbfilepath = (Path(__file__).parent / "inventers.db").absolute()
+            dbfilepath = (Path(__file__).parent.parent / "inventers.db").absolute()
             creator = lambda: sqlite3.connect(f"file:{dbfilepath}?mode=rw", uri=True)
             return SQLDatabase(create_engine("sqlite:///", creator=creator))
         elif self.db_type == MYSQL:
