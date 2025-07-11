@@ -1,8 +1,11 @@
 ssh/
 venv/
 
-__pychache_/
+__pycache_/
 fainseDB/
 
 inventers.db
+
+extracted_content/
+faissDB/
 

@@ -26,7 +26,6 @@ tqdm
 pymupdf
 
 
-
 sentence_transformers
 
 langchain_huggingface
@@ -53,4 +52,11 @@ pytube
 numexpr
 
 huggingface_hub
+
+neo4j
+
+langchain-neo4j
+
+
+
 

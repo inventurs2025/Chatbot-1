@@ -81,14 +81,22 @@ if st.button("Ask") or (user_query and st.session_state.get("last_query") != use
     else:
         with st.spinner("Thinking..."):
             faiss_docs = embedder.search(query=user_query, k=5)
+            
             faiss_context = "\n".join([doc.page_content for doc in faiss_docs])
+            
+            # response1 = llm.get_summery_response(
+            #     query=user_query,
+            #     context=faiss_context
+            # )
 
+            print(f"FAISS Context: {faiss_context}")
+            
             try:
                 sql_answer = agent.invoke(user_query)
             except Exception as e:
                 sql_answer = f"(SQL Agent Error: {e})"
 
-            combined_context = f"SQL Agent Answer: {sql_answer}\n\nFAISS Context:\n{faiss_context}"
+            combined_context = f"SQL Agent Answer: {sql_answer}\n\nFAISS Context:\n{faiss_context}\n\nUser Query: {user_query}"
 
             response = llm.get_response(
                 retriever=embedder.faiss_manager.as_retriever(),

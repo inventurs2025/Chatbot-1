@@ -9,13 +9,21 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 
+
+# Get the root directory of your project (where this script is located)
+FAISS_ROOT = (Path(__file__).parent.parent / "faissDB").absolute()
+FAISS_INDEX_PATH = f"{FAISS_ROOT}/faiss_index.bin"
+FAISS_DOCSTORE_PATH = f"{FAISS_ROOT}/faiss_docstore.pkl"
+
+
+
 class Orchestrator:
     def __init__(self, embedding_model, groq_api_key, sql_db_path=None, faiss_dim=1024):
         # Embedding/RAG pipeline
         self.embedder = EmbedderPipeline(
             embedding_model=embedding_model,
-            faiss_file="faiss_index.bin",
-            docstore_file="faiss_docstore.pkl",
+            faiss_file=FAISS_INDEX_PATH,
+            docstore_file=FAISS_DOCSTORE_PATH,
             dimension=faiss_dim
         )
         # SQL manager and agent
@@ -58,7 +66,7 @@ class Orchestrator:
         
         # 3. Prepare prompt
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are assistant of the inventurs company. Use the provided context to answer the question more specifically to inventres."),
+            ("system", "You are assistant of the inventurs company. Use the provided context to answer the question more specifically to inventres in the shortest manner."),
             ("user", "{user_query}"),
             ("context & info", "{combined_context}")
         ])
@@ -77,17 +85,6 @@ class Orchestrator:
 
         # 8. Return LLM answer
         return result["answer"] if "answer" in result else result
-
-# Example usage:
-# if __name__ == "__main__":
-#     from langchain_ollama import OllamaEmbeddings
-#     embedding_model = OllamaEmbeddings(model="mxbai-embed-large")
-#     orchestrator = Orchestrator(
-#         embedding_model=embedding_model,
-#         groq_api_key="YOUR_GROQ_API_KEY",
-#         sql_db_path="inventers.db",
-#         faiss_dim=1024
-#     )
-#     user_query = "List all IT department employees and summarize their projects."
-#     answer = orchestrator.query_combined(user_query)
-#     print("RAG LLM Answer:\n", answer)
+    
+    
+    

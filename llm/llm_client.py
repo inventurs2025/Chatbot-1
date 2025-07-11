@@ -11,7 +11,7 @@ class GroqLLMClient:
 
     def get_response(self, retriever, context, query, system_message=None):
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are assistant inventers company. Answer Queries in info and sql data.\n\nContext:\n{context}"),
+            ("system", "You are assistant inventers company. Provideing the Real-time context, Answer accordingly in Short Summery or informatic way.\n\nContext:\n{context}"),
             ("user", "{input}")
         ])
         combine_docs_chain = create_stuff_documents_chain(self.llm, prompt)
@@ -22,30 +22,75 @@ class GroqLLMClient:
         })
         return result["answer"] if "answer" in result else result
 
+    
+    def get_summery_response(self, query,context=''):
+        sql_skeleton = '''
+            TABLE: CEO
+            - CEO_ID       INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(50)
+            - EMAIL        VARCHAR(50)
+
+            TABLE: DEPARTMENT
+            - DEPT_ID      INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(30)
+
+            TABLE: MANAGER
+            - MANAGER_ID   INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(50)
+            - DEPT_ID      INTEGER       FOREIGN KEY → DEPARTMENT(DEPT_ID)
+            - EMAIL        VARCHAR(50)
+
+            TABLE: EMPLOYEE
+            - EMP_ID       INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(50)
+            - DEPT_ID      INTEGER       FOREIGN KEY → DEPARTMENT(DEPT_ID)
+            - MANAGER_ID   INTEGER       FOREIGN KEY → MANAGER(MANAGER_ID)
+            - ROLE         VARCHAR(30)
+            - EMAIL        VARCHAR(50)
+
+            TABLE: PROJECT
+            - PROJECT_ID   INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(50)
+            - DEPT_ID      INTEGER       FOREIGN KEY → DEPARTMENT(DEPT_ID)
+            - MANAGER_ID   INTEGER       FOREIGN KEY → MANAGER(MANAGER_ID)
+            - STATUS       VARCHAR(20)
+
+            TABLE: TASK
+            - TASK_ID      INTEGER       PRIMARY KEY AUTOINCREMENT
+            - PROJECT_ID   INTEGER       FOREIGN KEY → PROJECT(PROJECT_ID)
+            - NAME         VARCHAR(100)
+            - ASSIGNED_TO  INTEGER       FOREIGN KEY → EMPLOYEE(EMP_ID)
+            - STATUS       VARCHAR(20)
+            - DEADLINE     DATE
+
+            TABLE: INTERVIEW
+            - INTERVIEW_ID     INTEGER       PRIMARY KEY AUTOINCREMENT
+            - CANDIDATE_NAME   VARCHAR(50)
+            - POSITION         VARCHAR(30)
+            - HR_ID            INTEGER       FOREIGN KEY → EMPLOYEE(EMP_ID)
+            - RESULT           VARCHAR(20)
+            - DATE             DATE
+
+            TABLE: CLIENT
+            - CLIENT_ID    INTEGER       PRIMARY KEY AUTOINCREMENT
+            - NAME         VARCHAR(50)
+            - CONTACT      VARCHAR(50)
+            - PROJECT_ID   INTEGER       FOREIGN KEY → PROJECT(PROJECT_ID)
+            - STATUS       VARCHAR(20)
+        '''
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a SQL query expert for the Inventurs company.\nHere is the database schema:\n\n{sql_schema}\n\nBased on this, provide the context for quering the langchain sql agent based on the user query:{query} for retriving the data from sql. Provide Short and precise answer. context: {context}"),
+        ])
+
+        # Format messages using the template
+        messages = prompt.format_messages(sql_schema=sql_skeleton, query=query, context=context)
+
+        # Invoke the LLM directly
+        response = self.llm.invoke(messages)
+        print(response)
+
+        return response.content
 
 
 
-
-# # Example usage:
-# if __name__ == "__main__":
-#     from langchain_ollama import OllamaEmbeddings
-#     from faiss_retriever import LangChainFAISSManager
-
-#     # Setup embedding model and FAISS retriever
-#     embedding_model = OllamaEmbeddings(model="mxbai-embed-large")
-#     faiss_manager = LangChainFAISSManager(
-#         embedding_model=embedding_model,
-#         faiss_file="faiss_index.bin",
-#         docstore_file="faiss_docstore.pkl",
-#         dimension=1024
-#     )
-#     retriever = faiss_manager.as_retriever()
-
-#     # Setup LLM client
-#     groq_api_key = "YOUR_GROQ_API_KEY"
-#     llm_client = GroqLLMClient(groq_api_key=groq_api_key)
-
-#     # Get response
-#     query = "What is natural language processing?"
-#     answer = llm_client.get_response(query, retriever)
-#     print("LLM Answer:", answer)
